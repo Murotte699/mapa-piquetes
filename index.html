@@ -64,10 +64,10 @@ var lng = parseFloat(getUrlParam("lng")) || -48.545234;
 // Inicializa o mapa com os valores
 var map = L.map('map').setView([lat, lng], 17);
 
-// TileLayer satélite (ou light_all se quiser)
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+// TileLayer satélite Esri
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
   maxZoom: 19,
-  attribution: '&copy; OpenStreetMap contributors'
+  attribution: '&copy; Esri, DigitalGlobe, GeoIQ, Earthstar Geographics'
 }).addTo(map);
 
     var piqueteColors = {
