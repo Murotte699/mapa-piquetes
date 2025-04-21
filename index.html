@@ -58,6 +58,12 @@
         attribution: '&copy; OpenStreetMap contributors &copy; Carto'
     }).addTo(map);
 
+    // Camada única de satélite Esri
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19,
+    attribution: 'Tiles &copy; Esri'
+  }).addTo(map);
+
     var piqueteColors = {
         "C-01/75": "#C5E1A5",
         "C-02/67": "#F48FB1",
