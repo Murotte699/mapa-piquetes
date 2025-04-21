@@ -51,18 +51,24 @@
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
-    var map = L.map('map').setView([-27.678605, -48.545234], 17);
+// Função para pegar parâmetros da URL
+function getUrlParam(param) {
+  var urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(param);
+}
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 22,
-        attribution: '&copy; OpenStreetMap contributors &copy; Carto'
-    }).addTo(map);
+// Pega lat e lng da URL ou usa valor padrão
+var lat = parseFloat(getUrlParam("lat")) || -27.678605;
+var lng = parseFloat(getUrlParam("lng")) || -48.545234;
 
-    // Camada única de satélite Esri
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    maxZoom: 19,
-    attribution: 'Tiles &copy; Esri'
-  }).addTo(map);
+// Inicializa o mapa com os valores
+var map = L.map('map').setView([lat, lng], 17);
+
+// TileLayer satélite (ou light_all se quiser)
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
 
     var piqueteColors = {
         "C-01/75": "#C5E1A5",
