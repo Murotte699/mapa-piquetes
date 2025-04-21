@@ -5,16 +5,30 @@
     <title>Mapa Piquetes</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        #map { height: 100vh; }
+        #map {
+            height: 100vh;
+            position: relative; /* Importante para posicionar a marca d'água */
+        }
         /* CSS para aumentar o tamanho da fonte do popup */
         .leaflet-popup-content {
-            font-size: 30px; /* Você pode ajustar este valor */
+            font-size: 32px; /* Você pode ajustar este valor */
+        }
+        /* CSS para a marca d'água */
+        #watermark {
+            position: absolute;
+            bottom: 10px; /* Ajuste a distância da parte inferior */
+            left: 10px; /* Ajuste a distância da parte esquerda */
+            width: 100px; /* Ajuste a largura da sua logo */
+            opacity: 0.6; /* Ajuste a transparência da logo */
+            z-index: 1000; /* Garante que a logo fique acima do mapa */
         }
     </style>
 </head>
 <body>
 
-<div id="map"></div>
+<div id="map">
+    <img id="watermark" src="IMG_8564.png" alt="Sua Logo">
+</div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
