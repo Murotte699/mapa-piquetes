@@ -11,9 +11,9 @@
         }
         /* CSS para aumentar o tamanho da fonte do popup */
         .leaflet-popup-content {
-            font-size: 32px; /* Você pode ajustar este valor */
+            font-size: 16px; /* Você pode ajustar este valor */
         }
-        /* CSS para a marca d'água */
+        /* CSS para a marca d'água (padrão para telas maiores) */
         #watermark {
             position: absolute;
             bottom: 10px; /* Ajuste a distância da parte inferior */
@@ -22,12 +22,23 @@
             opacity: 0.6; /* Ajuste a transparência da logo */
             z-index: 1000; /* Garante que a logo fique acima do mapa */
         }
+
+        /* Media Query para telas menores (celulares - largura máxima de 600px, por exemplo) */
+        @media (max-width: 600px) {
+            #watermark {
+                bottom: 40px; /* Sobe a marca d'água */
+                left: 50%; /* Centraliza horizontalmente */
+                transform: translateX(-50%); /* Ajuste fino para centralizar */
+                width: 80px; /* Pode reduzir um pouco o tamanho em telas menores */
+                opacity: 0.7; /* Pode ajustar a opacidade em telas menores */
+            }
+        }
     </style>
 </head>
 <body>
 
 <div id="map">
-    <img id="watermark" src="IMG_8564.PNG" alt="Sua Logo">
+    <img id="watermark" src="IMG_8564.png" alt="Sua Logo">
 </div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
