@@ -159,7 +159,7 @@ var geojsonData = {
         { "type": "Feature", "properties": { "OGR_FID": 45, "Name": "97", "Forragem": null }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5422935, -27.6825388 ], [ -48.5426905, -27.6826884 ], [ -48.5423713, -27.6831848 ], [ -48.5419985, -27.6830091 ], [ -48.5422935, -27.6825388 ] ] ] } }
         ]
     };
-    L.geoJSON(geojsonData, {
+     L.geoJSON(geojsonData, {
         style: function (feature) {
             return {
                 fillColor: piqueteColors[feature.properties.Name],
@@ -170,11 +170,17 @@ var geojsonData = {
             };
         },
         onEachFeature: function (feature, layer) {
-            var popupContent = "<b>Piquete:</b> " + feature.properties.Name;
+            // Adiciona o ID do piquete como um rótulo fixo
+            layer.bindTooltip(feature.properties.Name, {
+                permanent: true,
+                direction: 'center',
+                className: 'piquete-label'
+            }).addTo(map);
+
+            // Define o conteúdo do popup apenas com a forragem, se existir
             if (feature.properties.Forragem) {
-                popupContent += "<br><b>Forragem:</b> " + feature.properties.Forragem;
+                layer.bindPopup("<b>Forragem:</b> " + feature.properties.Forragem);
             }
-            layer.bindPopup(popupContent);
         }
     }).addTo(map);
 
