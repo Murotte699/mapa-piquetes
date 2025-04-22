@@ -70,6 +70,22 @@ L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/
   attribution: '&copy; Esri, DigitalGlobe, GeoIQ, Earthstar Geographics'
 }).addTo(map);
 
+map.locate({setView: false, maxZoom: 18});
+
+function onLocationFound(e) {
+  var userMarker = L.marker(e.latlng).addTo(map)
+    .bindPopup("Você está aqui!").openPopup();
+}
+
+map.on('locationfound', onLocationFound);
+
+function onLocationError(e) {
+  alert("Não foi possível obter sua localização.");
+}
+
+map.on('locationerror', onLocationError);
+    
+    
     var piqueteColors = {
         "C-01/75": "#C5E1A5",
         "C-02/67": "#F48FB1",
