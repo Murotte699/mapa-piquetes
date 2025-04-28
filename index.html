@@ -114,7 +114,7 @@
         var map = L.map('map').setView([-27.678, -48.543], 15); // Define uma view inicial (latitude/longitude do centro da sua área e um zoom razoável)
 
 L.gridLayer.googleMutant({
-    type: 'roadmap' // Tente 'terrain' ou 'hybrid' também
+    type: 'hybrid' // Tente 'terrain' ou 'hybrid' também
 }).addTo(map);
 
         // Funções para mostrar/esconder overlay e spinner
