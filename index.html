@@ -41,7 +41,18 @@
         font-weight: bold;
         color: #333;
                
-    #spinner {
+  #overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.7); /* fundo branco meio transparente */
+    z-index: 9998;
+    display: none;
+}
+
+#spinner {
     position: fixed;
     top: 50%;
     left: 50%;
@@ -54,7 +65,6 @@
     animation: spin 1s linear infinite;
     z-index: 9999;
     display: none;
-    background-color: rgba(255, 255, 255, 0.6);
 }
 
 @keyframes spin {
@@ -64,6 +74,7 @@
     </style>
 </head>
 <body>
+<div id="overlay"></div>
 <div id="spinner"></div>
 <div id="map">
     <img id="watermark" src="IMG_8564.png" alt="Sua Logo">
@@ -91,6 +102,7 @@ L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/
 }).addTo(map);
 
 function localizarUsuario(tentativas = 0) {
+    document.getElementById('overlay').style.display = 'block'; // Mostra o overlay
     document.getElementById('spinner').style.display = 'block'; // Mostra o spinner
 
     map.locate({
@@ -100,7 +112,8 @@ function localizarUsuario(tentativas = 0) {
         enableHighAccuracy: true
     })
     .on('locationfound', function(e) {
-        document.getElementById('spinner').style.display = 'none'; // Some com o spinner
+        document.getElementById('overlay').style.display = 'none'; // Esconde o overlay
+        document.getElementById('spinner').style.display = 'none'; // Esconde o spinner
         var userMarker = L.marker(e.latlng).addTo(map)
             .bindPopup("Você está aqui!").openPopup();
     })
@@ -110,25 +123,11 @@ function localizarUsuario(tentativas = 0) {
                 localizarUsuario(tentativas + 1);
             }, 2000);
         } else {
-            document.getElementById('spinner').style.display = 'none'; // Some com o spinner no erro final
+            document.getElementById('overlay').style.display = 'none'; // Esconde o overlay
+            document.getElementById('spinner').style.display = 'none'; // Esconde o spinner
             alert("Não foi possível obter sua localização. Verifique se o GPS ou a permissão estão ativos.");
         }
     });
-}
-
-// Chamar a função logo que carregar
-localizarUsuario();
-
-
-function onLocationFound(e) {
-  var userMarker = L.marker(e.latlng).addTo(map)
-    .bindPopup("Você está aqui!").openPopup();
-}
-
-map.on('locationfound', onLocationFound);
-
-function onLocationError(e) {
-  alert("Não foi possível obter sua localização.");
 }
 
 map.on('locationerror', onLocationError);
