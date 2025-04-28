@@ -113,9 +113,8 @@
         // Inicializa o mapa
         var map = L.map('map').setView([-27.678, -48.543], 15); // Define uma view inicial (latitude/longitude do centro da sua área e um zoom razoável)
 
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+L.gridLayer.googleMutant({
+    type: 'roadmap' // Tente 'terrain' ou 'hybrid' também
 }).addTo(map);
 
         // Funções para mostrar/esconder overlay e spinner
