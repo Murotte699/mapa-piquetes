@@ -5,16 +5,15 @@
     <title>Mapa com Localização</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
     <script src="https://unpkg.com/leaflet.gridlayer.googlemutant@latest/dist/leaflet.gridlayer.googlemutant.js"></script>
-    
+
     <style>
-      
-         #map {
+        #map {
             height: 100vh;
             width: 100%;
+            position: relative; /* Importante para posicionar a marca d'água */
         }
 
         /* Overlay de fundo transparente */
@@ -29,6 +28,7 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease;
+            display: none; /* Garante que comece escondido */
         }
 
         /* Spinner de carregamento */
@@ -47,6 +47,7 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease;
+            display: none; /* Garante que comece escondido */
         }
 
         /* Animação de rotação do spinner */
@@ -59,22 +60,19 @@
         .show {
             opacity: 1;
             visibility: visible;
+            display: block !important; /* Garante que seja visível */
         }
-      
-                
-     #map {
-            height: 100vh;
-            position: relative; /* Importante para posicionar a marca d'água */
-        }
+
         /* CSS para aumentar o tamanho da fonte do popup */
         .leaflet-popup-content {
             font-size: 14px; /* Você pode ajustar este valor */
         }
-        /* CSS para a marca d'água (padrão para telas maiores) */
+
+        /* CSS para a marca d'água */
         #watermark {
             position: absolute;
-            bottom: 500px; /* Ajuste a distância da parte inferior */
-            left: 40px; /* Ajuste a distância da parte esquerda */
+            bottom: 20px; /* Ajuste a distância da parte inferior */
+            left: 20px; /* Ajuste a distância da parte esquerda */
             width: 100px; /* Ajuste a largura da sua logo */
             opacity: 0.6; /* Ajuste a transparência da logo */
             z-index: 1000; /* Garante que a logo fique acima do mapa */
@@ -83,67 +81,33 @@
         /* Media Query para telas menores (celulares - largura máxima de 600px, por exemplo) */
         @media (max-width: 600px) {
             #watermark {
-                bottom: 80px; /* Sobe a marca d'água */
+                bottom: 10px; /* Sobe a marca d'água */
                 left: 50%; /* Centraliza horizontalmente */
                 transform: translateX(-50%); /* Ajuste fino para centralizar */
                 width: 80px; /* Pode reduzir um pouco o tamanho em telas menores */
                 opacity: 0.7; /* Pode ajustar a opacidade em telas menores */
             }
         }
-           .piquete-label {
-        background-color: rgba(255, 255, 255, 0.7);
-        padding: 2px 5px;
-        border-radius: 3px;
-        font-size: 12px;
-        font-weight: bold;
-        color: #333;
-               
-  #overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.7); /* fundo branco meio transparente */
-    z-index: 9998;
-    display: none;
-}
 
-#spinner {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    width: 60px;
-    height: 60px;
-    margin: -30px 0 0 -30px;
-    border: 8px solid #f3f3f3;
-    border-top: 8px solid #3498db;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    z-index: 9999;
-    display: none;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+        .piquete-label {
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+        }
     </style>
 </head>
 
-
-    
 <body>
-  <div id="map"></div>
+    <div id="map"></div>
 
-    <!-- Overlay e Spinner -->
     <div id="overlay"></div>
     <div id="spinner"></div>
     <img id="watermark" src="IMG_8564.png" alt="Sua Logo">
-</div>
 
- <!-- Leaflet JS -->
-      <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
     <script>
         // Inicializa o mapa
@@ -299,31 +263,31 @@
         ]
     };
   L.geoJSON(geojsonData, {
-        style: function (feature) {
-            return {
-                fillColor: piqueteColors[feature.properties.Name],
-                color: "#000",
-                weight: 1,
-                opacity: 1,
-                fillOpacity: 0.8
-            };
-        },
-        onEachFeature: function (feature, layer) {
-            // Adiciona o ID do piquete como um rótulo fixo
-            layer.bindTooltip(feature.properties.Name, {
-                permanent: true,
-                direction: 'center',
-                className: 'piquete-label'
+                style: function (feature) {
+                    return {
+                        fillColor: piqueteColors[feature.properties.Name],
+                        color: "#000",
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    };
+                },
+                onEachFeature: function (feature, layer) {
+                    // Adiciona o ID do piquete como um rótulo fixo
+                    layer.bindTooltip(feature.properties.Name, {
+                        permanent: true,
+                        direction: 'center',
+                        className: 'piquete-label'
+                    }).addTo(map);
+
+                    // Define o conteúdo do popup apenas com a forragem, se existir
+                    if (feature.properties.Forragem) {
+                        layer.bindPopup("<b>Forragem:</b> " + feature.properties.Forragem);
+                    }
+                }
             }).addTo(map);
 
-            // Define o conteúdo do popup apenas com a forragem, se existir
-            if (feature.properties.Forragem) {
-                layer.bindPopup("<b>Forragem:</b> " + feature.properties.Forragem);
-            }
-        }
-    }).addTo(map);
+        </script>
 
-</script>
-
-</body>
-</html> 
+        </body>
+        </html>
