@@ -152,7 +152,7 @@
 
     <script>
         // Inicializa o mapa
-        var map = L.map('map').setView([-23.5505, -46.6333], 13); // Exemplo: São Paulo
+        var map = L.map('map'); // Exemplo: São Paulo
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
@@ -171,30 +171,33 @@
 
         // Função principal para localizar o usuário
         function localizarUsuario(tentativas = 0) {
-            mostrarCarregando();
+    mostrarCarregando();
 
-            map.locate({
-                setView: false,
-                maxZoom: 18,
-                timeout: 10000,
-                enableHighAccuracy: true
-            })
-            .on('locationfound', function(e) {
-                esconderCarregando();
-                L.marker(e.latlng).addTo(map)
-                    .bindPopup("Você está aqui!").openPopup();
-            })
-            .on('locationerror', function(e) {
-                if (tentativas < 3) {
-                    setTimeout(function() {
-                        localizarUsuario(tentativas + 1);
-                    }, 2000);
-                } else {
-                    esconderCarregando();
-                    alert("Não foi possível obter sua localização. Verifique se o GPS ou a permissão estão ativos.");
-                }
-            });
+    map.locate({
+        setView: true, // Mantemos para centralizar o mapa
+        maxZoom: 18,
+        timeout: 10000,
+        enableHighAccuracy: true
+    })
+    .on('locationfound', function(e) {
+        esconderCarregando();
+        L.marker(e.latlng).addTo(map)
+            .bindPopup("Você está aqui!")
+            .openPopup(); // Mantemos o openPopup() para exibir a mensagem
+    })
+    .on('locationerror', function(e) {
+        if (tentativas < 3) {
+            setTimeout(function() {
+                localizarUsuario(tentativas + 1);
+            }, 2000);
+        } else {
+            esconderCarregando();
+            alert("Não foi possível obter sua localização. Verifique se o GPS ou a permissão estão ativos.");
+            // Opcional: definir uma view padrão aqui
+            // map.setView([-23.5505, -46.6333], 13);
         }
+    });
+}
 
         // Chama a função ao carregar
         localizarUsuario();
