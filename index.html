@@ -70,7 +70,32 @@ L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/
   attribution: '&copy; Esri, DigitalGlobe, GeoIQ, Earthstar Geographics'
 }).addTo(map);
 
-map.locate({setView: false, maxZoom: 18});
+function localizarUsuario(tentativas = 0) {
+    map.locate({
+        setView: false,
+        maxZoom: 18,
+        timeout: 10000, // 10 segundos de espera
+        enableHighAccuracy: true // Tenta pegar a melhor localização possível
+    })
+    .on('locationfound', function(e) {
+        var userMarker = L.marker(e.latlng).addTo(map)
+            .bindPopup("Você está aqui!").openPopup();
+    })
+    .on('locationerror', function(e) {
+        if (tentativas < 3) {
+            // Se falhar, tenta de novo (até 3 vezes)
+            setTimeout(function() {
+                localizarUsuario(tentativas + 1);
+            }, 2000); // espera 2 segundos antes de tentar novamente
+        } else {
+            alert("Não foi possível obter sua localização. Verifique se o GPS ou a permissão estão ativos.");
+        }
+    });
+}
+
+// Chamar a função logo que carregar
+localizarUsuario();
+
 
 function onLocationFound(e) {
   var userMarker = L.marker(e.latlng).addTo(map)
