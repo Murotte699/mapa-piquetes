@@ -158,8 +158,35 @@ L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/
         }
 
         // Chama a função ao carregar
-        localizarUsuario();
+       function localizarUsuario(tentativas = 0) {
+    mostrarCarregando();
 
+    map.locate({
+        setView: false, // Não centralizamos o mapa imediatamente
+        maxZoom: 18,
+        timeout: 10000,
+        enableHighAccuracy: true
+    })
+    .on('locationfound', function(e) {
+        esconderCarregando();
+        map.setView(e.latlng, 18); // Centralizamos o mapa AGORA, na localização encontrada
+        L.marker(e.latlng).addTo(map)
+            .bindPopup("Você está aqui!")
+            .openPopup();
+    })
+    .on('locationerror', function(e) {
+        console.error("Erro de localização:", e); // Log do erro no console
+        if (tentativas < 3) {
+            setTimeout(function() {
+                localizarUsuario(tentativas + 1);
+            }, 2000);
+        } else {
+            esconderCarregando();
+            alert("Não foi possível obter sua localização. Verifique se o GPS ou a permissão estão ativos. O mapa será exibido na área padrão.");
+            // Já temos uma view padrão definida na inicialização
+        }
+    });
+}
 
         var piqueteColors = {
             "C-01/75": "#C5E1A5",
