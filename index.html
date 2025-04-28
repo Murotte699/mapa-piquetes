@@ -1,10 +1,72 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-    <meta charset="utf-8">
-    <title>Mapa Piquetes</title>
+    <meta charset="UTF-8">
+    <title>Mapa com Localização</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
     <style>
+      
+         #map {
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* Overlay de fundo transparente */
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            z-index: 9998;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Spinner de carregamento */
+        #spinner {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 60px;
+            height: 60px;
+            margin: -30px 0 0 -30px;
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Animação de rotação do spinner */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Classes para mostrar overlay e spinner com fade */
+        .show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
         #map {
             height: 100vh;
             position: relative; /* Importante para posicionar a marca d'água */
@@ -73,65 +135,69 @@
 }
     </style>
 </head>
+
+
+    
 <body>
-<div id="overlay"></div>
-<div id="spinner"></div>
-<div id="map">
+  <div id="map"></div>
+
+    <!-- Overlay e Spinner -->
+    <div id="overlay"></div>
+    <div id="spinner"></div>
     <img id="watermark" src="IMG_8564.png" alt="Sua Logo">
 </div>
 
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script>
-// Função para pegar parâmetros da URL
-function getUrlParam(param) {
-  var urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get(param);
-}
+ <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-// Pega lat e lng da URL ou usa valor padrão
-var lat = parseFloat(getUrlParam("lat")) || -27.678605;
-var lng = parseFloat(getUrlParam("lng")) || -48.545234;
+    <script>
+        // Inicializa o mapa
+        var map = L.map('map').setView([-23.5505, -46.6333], 13); // Exemplo: São Paulo
 
-// Inicializa o mapa com os valores
-var map = L.map('map').setView([lat, lng], 17);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
 
-// TileLayer satélite Esri
-L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-  maxZoom: 19,
-  attribution: '&copy; Esri, DigitalGlobe, GeoIQ, Earthstar Geographics'
-}).addTo(map);
-
-function localizarUsuario(tentativas = 0) {
-    document.getElementById('overlay').style.display = 'block'; // Mostra o overlay
-    document.getElementById('spinner').style.display = 'block'; // Mostra o spinner
-
-    map.locate({
-        setView: false,
-        maxZoom: 18,
-        timeout: 10000,
-        enableHighAccuracy: true
-    })
-    .on('locationfound', function(e) {
-        document.getElementById('overlay').style.display = 'none'; // Esconde o overlay
-        document.getElementById('spinner').style.display = 'none'; // Esconde o spinner
-        var userMarker = L.marker(e.latlng).addTo(map)
-            .bindPopup("Você está aqui!").openPopup();
-    })
-    .on('locationerror', function(e) {
-        if (tentativas < 3) {
-            setTimeout(function() {
-                localizarUsuario(tentativas + 1);
-            }, 2000);
-        } else {
-            document.getElementById('overlay').style.display = 'none'; // Esconde o overlay
-            document.getElementById('spinner').style.display = 'none'; // Esconde o spinner
-            alert("Não foi possível obter sua localização. Verifique se o GPS ou a permissão estão ativos.");
+        // Funções para mostrar/esconder overlay e spinner
+        function mostrarCarregando() {
+            document.getElementById('overlay').classList.add('show');
+            document.getElementById('spinner').classList.add('show');
         }
-    });
-}
 
-// Chamar a função logo que carregar
-localizarUsuario();
+        function esconderCarregando() {
+            document.getElementById('overlay').classList.remove('show');
+            document.getElementById('spinner').classList.remove('show');
+        }
+
+        // Função principal para localizar o usuário
+        function localizarUsuario(tentativas = 0) {
+            mostrarCarregando();
+
+            map.locate({
+                setView: false,
+                maxZoom: 18,
+                timeout: 10000,
+                enableHighAccuracy: true
+            })
+            .on('locationfound', function(e) {
+                esconderCarregando();
+                L.marker(e.latlng).addTo(map)
+                    .bindPopup("Você está aqui!").openPopup();
+            })
+            .on('locationerror', function(e) {
+                if (tentativas < 3) {
+                    setTimeout(function() {
+                        localizarUsuario(tentativas + 1);
+                    }, 2000);
+                } else {
+                    esconderCarregando();
+                    alert("Não foi possível obter sua localização. Verifique se o GPS ou a permissão estão ativos.");
+                }
+            });
+        }
+
+        // Chama a função ao carregar
+        localizarUsuario();
 
 
 function onLocationFound(e) {
