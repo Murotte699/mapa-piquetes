@@ -40,11 +40,31 @@
         font-size: 26px;
         font-weight: bold;
         color: #333;
-    }
+               
+    #spinner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 60px;
+    height: 60px;
+    margin: -30px 0 0 -30px;
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 9999;
+    display: none;
+    background-color: rgba(255, 255, 255, 0.6);
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
     </style>
 </head>
 <body>
-
+<div id="spinner"></div>
 <div id="map">
     <img id="watermark" src="IMG_8564.png" alt="Sua Logo">
 </div>
@@ -71,23 +91,26 @@ L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/
 }).addTo(map);
 
 function localizarUsuario(tentativas = 0) {
+    document.getElementById('spinner').style.display = 'block'; // Mostra o spinner
+
     map.locate({
         setView: false,
         maxZoom: 18,
-        timeout: 10000, // 10 segundos de espera
-        enableHighAccuracy: true // Tenta pegar a melhor localização possível
+        timeout: 10000,
+        enableHighAccuracy: true
     })
     .on('locationfound', function(e) {
+        document.getElementById('spinner').style.display = 'none'; // Some com o spinner
         var userMarker = L.marker(e.latlng).addTo(map)
             .bindPopup("Você está aqui!").openPopup();
     })
     .on('locationerror', function(e) {
         if (tentativas < 3) {
-            // Se falhar, tenta de novo (até 3 vezes)
             setTimeout(function() {
                 localizarUsuario(tentativas + 1);
-            }, 2000); // espera 2 segundos antes de tentar novamente
+            }, 2000);
         } else {
+            document.getElementById('spinner').style.display = 'none'; // Some com o spinner no erro final
             alert("Não foi possível obter sua localização. Verifique se o GPS ou a permissão estão ativos.");
         }
     });
