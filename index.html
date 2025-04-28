@@ -8,6 +8,8 @@
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
+    <script src="https://unpkg.com/leaflet.gridlayer.googlemutant@latest/dist/leaflet.gridlayer.googlemutant.js"></script>
+    
     <style>
       
          #map {
@@ -58,16 +60,9 @@
             opacity: 1;
             visibility: visible;
         }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        #map {
+      
+                
+     #map {
             height: 100vh;
             position: relative; /* Importante para posicionar a marca d'água */
         }
@@ -154,9 +149,9 @@
         // Inicializa o mapa
         var map = L.map('map'); // Exemplo: São Paulo
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+      L.gridLayer.googleMutant({
+    type: 'satellite' // Pode ser 'roadmap', 'terrain', 'hybrid' também
+}).addTo(map);
 
         // Funções para mostrar/esconder overlay e spinner
         function mostrarCarregando() {
