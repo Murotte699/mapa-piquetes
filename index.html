@@ -113,8 +113,8 @@
         // Inicializa o mapa
         var map = L.map('map').setView([-27.678, -48.543], 15); // Define uma view inicial (latitude/longitude do centro da sua área e um zoom razoável)
 
-L.gridLayer.googleMutant({
-    type: 'terrain' // Tente 'terrain' ou 'hybrid' também
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
 }).addTo(map);
 
         // Funções para mostrar/esconder overlay e spinner
