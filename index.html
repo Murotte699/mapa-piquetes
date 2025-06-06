@@ -2,10 +2,9 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Mapa com Delineamento Experimental</title>
+    <title>Mapa com Localização</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
     <script src="https://unpkg.com/leaflet.gridlayer.googlemutant@latest/dist/leaflet.gridlayer.googlemutant.js"></script>
@@ -29,7 +28,7 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease;
-            display: none;
+            display: none; /* Garante que comece escondido */
         }
 
         /* Spinner de carregamento */
@@ -48,9 +47,10 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease;
-            display: none;
+            display: none; /* Garante que comece escondido */
         }
 
+        /* Animação de rotação do spinner */
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -60,31 +60,32 @@
         .show {
             opacity: 1;
             visibility: visible;
-            display: block !important;
+            display: block !important; /* Garante que seja visível */
         }
 
-        /* CSS para o popup */
+        /* CSS para aumentar o tamanho da fonte do popup */
         .leaflet-popup-content {
-            font-size: 14px;
+            font-size: 14px; /* Você pode ajustar este valor */
         }
 
         /* CSS para a marca d'água */
         #watermark {
             position: absolute;
-            bottom: 20px;
-            left: 20px;
-            width: 100px;
-            opacity: 0.6;
-            z-index: 1000;
+            bottom: 20px; /* Ajuste a distância da parte inferior */
+            left: 20px; /* Ajuste a distância da parte esquerda */
+            width: 100px; /* Ajuste a largura da sua logo */
+            opacity: 0.6; /* Ajuste a transparência da logo */
+            z-index: 1000; /* Garante que a logo fique acima do mapa */
         }
 
+        /* Media Query para telas menores (celulares - largura máxima de 600px, por exemplo) */
         @media (max-width: 600px) {
             #watermark {
-                bottom: 10px;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 80px;
-                opacity: 0.7;
+                bottom: 10px; /* Sobe a marca d'água */
+                left: 50%; /* Centraliza horizontalmente */
+                transform: translateX(-50%); /* Ajuste fino para centralizar */
+                width: 80px; /* Pode reduzir um pouco o tamanho em telas menores */
+                opacity: 0.7; /* Pode ajustar a opacidade em telas menores */
             }
         }
 
@@ -106,41 +107,42 @@
     <div id="spinner"></div>
     <img id="watermark" src="IMG_8564.png" alt="Sua Logo">
 
-    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
     <script>
-        // 1) Inicializa o mapa na posição central aproximada da área experimental
-        var map = L.map('map').setView([-27.678, -48.543], 15);
-        L.tileLayer(
-            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-        }).addTo(map);
+        // Inicializa o mapa
+        var map = L.map('map').setView([-27.678, -48.543], 15); // Define uma view inicial (latitude/longitude do centro da sua área e um zoom razoável)
 
-        // 2) Funções para overlay + spinner
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+}).addTo(map);
+
+        // Funções para mostrar/esconder overlay e spinner
         function mostrarCarregando() {
             document.getElementById('overlay').classList.add('show');
             document.getElementById('spinner').classList.add('show');
         }
+
         function esconderCarregando() {
             document.getElementById('overlay').classList.remove('show');
             document.getElementById('spinner').classList.remove('show');
         }
 
-        // 3) Função de localização do usuário (até 3 tentativas)
+        // Função principal para localizar o usuário
         function localizarUsuario(tentativas = 0) {
             mostrarCarregando();
+
             map.locate({
-                setView: false,
+                setView: true, // Mantemos para centralizar o mapa QUANDO a localização for encontrada
                 maxZoom: 18,
                 timeout: 10000,
                 enableHighAccuracy: true
             })
             .on('locationfound', function(e) {
                 esconderCarregando();
-                map.setView(e.latlng, 18);
                 L.marker(e.latlng).addTo(map)
-                    .bindPopup("Você está aqui!").openPopup();
+                    .bindPopup("Você está aqui!")
+                    .openPopup(); // Mantemos o openPopup() para exibir a mensagem
             })
             .on('locationerror', function(e) {
                 if (tentativas < 3) {
@@ -149,13 +151,48 @@
                     }, 2000);
                 } else {
                     esconderCarregando();
-                    alert("Não foi possível obter sua localização. Verifique se o GPS ou a permissão estão ativos.");
+                    alert("Não foi possível obter sua localização. Verifique se o GPS ou a permissão estão ativos. O mapa será exibido na área padrão.");
+                    // Já temos uma view padrão definida na inicialização, então não precisamos fazer nada aqui
                 }
             });
         }
-        setTimeout(localizarUsuario, 1000); // chama após 1 segundo
 
-        // 4) Cores originais de cada piquete (caso não seja experimental) — mantidas
+        // Chama a função ao carregar
+      // Chama a função com um pequeno atraso
+setTimeout(localizarUsuario, 1000); // 500 milissegundos (0.5 segundos) 1000mseg é 1s
+function localizarUsuario(tentativas = 0) {
+    mostrarCarregando();
+
+    map.locate({
+        setView: false,
+        maxZoom: 18,
+        timeout: 10000,
+        enableHighAccuracy: true
+    })
+    .on('locationfound', function(e) {
+        esconderCarregando();
+        map.setView(e.latlng, 18);
+        L.marker(e.latlng).addTo(map)
+            .bindPopup("Você está aqui!")
+            .openPopup();
+    })
+    .on('locationerror', function(e) {
+        console.error("Erro de localização:", e);
+        if (tentativas < 3) {
+            setTimeout(function() {
+                localizarUsuario(tentativas + 1);
+            }, 2000);
+        } else {
+            esconderCarregando();
+            alert("Não foi possível obter sua localização. Verifique se o GPS ou a permissão estão ativos. O mapa será exibido na área padrão.");
+        }
+    });
+}
+
+
+
+
+        
         var piqueteColors = {
             "C-01/75": "#C5E1A5",
             "C-02/67": "#F48FB1",
@@ -204,134 +241,85 @@
             "97": "#FFD600"
         };
 
-        // 5) Informações do delineamento experimental:
-        // - Cada piquete é mapeado para Tratamento (T1/T2/T3), Bloco (BL1/BL2/BL3) e Repetição (R1–R4).
-        // - Se for experimental, sobrescreve a cor original por: T1 = azul-marinho, T2 = verde-bandeira, T3 = laranja.
-        var piqueteInfo = {
-            // ==== TRATAMENTO 1 (Azul-marinho) ====
-            "C-18/30": { t: "T1", bloco: "BL3", rep: "R1", color: "#003c71" },
-            "C-15/38": { t: "T1", bloco: "BL3", rep: "R2", color: "#003c71" },
-            "C-11/44": { t: "T1", bloco: "BL3", rep: "R3", color: "#003c71" },
-            "C-06/60": { t: "T1", bloco: "BL3", rep: "R4", color: "#003c71" },
 
-            // ==== TRATAMENTO 2 (Verde-bandeira) ====
-            "C-26/14": { t: "T2", bloco: "BL2", rep: "R1", color: "#008000" },
-            "C-09/52": { t: "T2", bloco: "BL2", rep: "R2", color: "#008000" },
-            "C-05/59": { t: "T2", bloco: "BL2", rep: "R3", color: "#008000" },
-            "C-02/67": { t: "T2", bloco: "BL2", rep: "R4", color: "#008000" },
-
-            // ==== TRATAMENTO 3 (Laranja) ====
-            "C-22/22": { t: "T3", bloco: "BL1", rep: "R1", color: "#FF6A00" },
-            "C-12/45": { t: "T3", bloco: "BL1", rep: "R2", color: "#FF6A00" },
-            "C-08/51": { t: "T3", bloco: "BL1", rep: "R3", color: "#FF6A00" },
-            "C-03/68": { t: "T3", bloco: "BL1", rep: "R4", color: "#FF6A00" }
-        };
-
-        // 6) GeoJSON dos polígonos dos piquetes (inalterado)
-        var geojsonData = {
-            "type": "FeatureCollection",
-            "name": "mapa",
-            "crs": {
-                "type": "name",
-                "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" }
-            },
-            "features": [
-                { "type": "Feature", "properties": { "OGR_FID": 1, "Name": "C-01/75", "Forragem": "Brachiaria Setária / Amendoim / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5434389, -27.6769993 ], [ -48.5425833, -27.6774554 ], [ -48.542291, -27.6770611 ], [ -48.5434389, -27.6769993 ] ] ] } },
-                { "type": "Feature", "properties": { "OGR_FID": 2, "Name": "C-02/67", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5440243, -27.6768314 ], [ -48.5442442, -27.677114 ], [ -48.543858, -27.677323 ], [ -48.5436085, -27.6769929 ], [ -48.5440243, -27.6768314 ] ] ] } },
-                { "type": "Feature", "properties": { "OGR_FID": 3, "Name": "C-03/68", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5436085, -27.6769929 ], [ -48.543858, -27.677323 ], [ -48.5434135, -27.677576 ], [ -48.5431533, -27.6772055 ], [ -48.5436085, -27.6769929 ] ] ] } },
-                { "type": "Feature", "properties": { "OGR_FID": 4, "Name": "C-04/69", "Forragem": "Brachiaria Setária / Amendoim / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5434135, -27.677576 ], [ -48.5429814, -27.6778183 ], [ -48.5427279, -27.6774465 ], [ -48.5431533, -27.6772055 ], [ -48.5434135, -27.677576 ] ] ] } },
-                { "type": "Feature", "properties": { "OGR_FID": 5, "Name": "C-05/59", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5442442, -27.677114 ], [ -48.5445199, -27.6774883 ], [ -48.5441028, -27.6777294 ], [ -48.543858, -27.677323 ], [ -48.5442442, -27.677114 ] ] ] } },
-                { "type": "Feature", "properties": { "OGR_FID": 6, "Name": "C-06/60", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5441028, -27.6777294 ], [ -48.5436831, -27.6779681 ], [ -48.5434135, -27.677576 ], [ -48.543858, -27.677323 ], [ -48.5441028, -27.6777294 ] ] ] } },
-                { "type": "Feature", "properties": { "OGR_FID": 7, "Name": "C-07/61", "Forragem": "Brachiaria Setária / Amendoim / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5434135, -27.677576 ], [ -48.5436831, -27.6779681 ], [ -48.5432445, -27.6782056 ], [ -48.5429814, -27.6778183 ], [ -48.5434135, -27.677576 ] ] ] } },
-                { "type": "Feature", "properties": { "OGR_FID": 8, "Name": "C-08/51", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5445447, -27.6775428 ], [ -48.5448424, -27.6779324 ], [ -48.5444065, -27.6781699 ], [ -48.5441222, -27.6777673 ], [ -48.5445447, -27.6775428 ] ] ] } },
-                { "type": "Feature", "properties": { "OGR_FID": 9, "Name": "C-09/52", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5444065, -27.6781699 ], [ -48.5439854, -27.6784181 ], [ -48.5437145, -27.6779918 ], [ -48.5441222, -27.6777673 ], [ -48.5444065, -27.6781699 ] ] ] } },
-                { "type": "Feature", "properties": { "OGR_FID": 10, "Name": "C-10/53", "Forragem": "Brachiaria Setária / Amendoim / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5439854, -27.6784181 ], [ -48.5435576, -27.6786485 ], [ -48.5432706, -27.6782412 ], [ -48.5437145, -27.6779918 ], [ -48.5439854, -27.6784181 ] ] ] } },
-                { "type": "Feature", "properties": { "OGR_FID": 11, "Name": "C-11/44", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5448424, -27.6779324 ], [ -48.5451267, -27.6783196 ], [ -48.5446761, -27.6785606 ], [ -48.5444065, -27.6781699 ], [ -48.5448424, -27.6779324 ] ] ] } },
-                { "type": "Feature", "properties": { "OGR_FID": 12, "Name": "C-12/45", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5446761, -27.6785606 ], [ -48.5442483, -27.678797 ], [ -48.5439854, -27.6784181 ], [ -48.5444065, -27.6781699 ], [ -48.5446761, -27.6785606 ] ] ] } },
-                { "type": "Feature", "properties": { "OGR_FID": 13, "Name": "C-13/46", "Forragem": "Brachiaria Setária / Amendoim / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5442483, -27.678797 ], [ -48.543807, -27.6790333 ], [ -48.5435576, -27.6786485 ], [ -48.5439854, -27.6784181 ], [ -48.5442483, -27.678797 ] ] ] } },
-                { "type": "Feature", "properties": { "OGR_FID": 14, "Name": "C-14/37", "Forragem": "Brachiaria Setária / Amendoim / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5451723, -27.6783564 ], [ -48.5454539, -27.678734 ], [ -48.5450811, -27.6789383 ], [ -48.5448048, -27.6785583 ], [ -48.5451723, -27.6783564 ] ] ] } },
-                { "type": "Feature", "properties": { "OGR_FID": 15, "Name": "C-15/38", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5450811, -27.6789383 ], [ -48.5446466, -27.6791948 ], [ -48.5443649, -27.6788005 ], [ -48.5448048, -27.6785583 ], [ -48.5450811, -27.6789383 ] ] ] } },                { "type": "Feature", "properties": { "OGR_FID": 16, "Name": "C-16/39", "Forragem": "Brachiaria Setária / Amendoim / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.544601, -27.6792233 ], [ -48.5441718, -27.6794727 ], [ -48.5438795, -27.6790642 ], [ -48.5443408, -27.6788148 ], [ -48.544601, -27.6792233 ] ] ] } },
-                { "type": "Feature", "properties": { "OGR_FID": 17, "Name": "C-17/39", "Forragem": "Brachiaria Setária / Amendoim / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5454539, -27.678734 ], [ -48.5457503, -27.679129 ], [ -48.545356, -27.6793333 ], [ -48.5450811, -27.6789383 ], [ -48.5454539, -27.678734 ] ] ] } },
-                { "type": "Feature", "properties": { "OGR_FID": 18, "Name": "C-18/30", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.545356, -27.6793333 ], [ -48.5449161, -27.6795803 ], [ -48.5446466, -27.6791948 ], [ -48.5450811, -27.6789383 ], [ -48.545356, -27.6793333 ] ] ] } },
-                { "type": "Feature", "properties": { "OGR_FID": 19, "Name": "C-19/31", "Forragem": "Brachiaria Setária / Amendoim / Trevo" }, "geometry": { "type": "Polygon", "coordinates”: [ [ [ -48.544601, -27.6792233 ], [ -48.5448625, -27.6795993 ], [ -48.5444387, -27.679825 ], [ -48.5441718, -27.6794727 ], [ -48.544601, -27.6792233 ] ] ] } },
-                { "type": "Feature", "properties": { "OGR_FID": 20, "Name": "C-20/31", "Forragem": "Brachiaria Setária / Amendoim / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5444387, -27.679825 ], [ -48.5439801, -27.6800672 ], [ -48.5437547, -27.6797395 ], [ -48.5441718, -27.6794727 ], [ -48.5444387, -27.679825 ] ] ] } },
-                { "type": "Feature", "properties": { "OGR_FID": 21, "Name": "C-21/21", "Forragem": "Brachiaria Setária / Amendoim / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5457503, -27.679129 ], [ -48.5460428, -27.6795067 ], [ -48.5456244, -27.6797347 ], [ -48.545356, -27.6793333 ], [ -48.5457503, -27.679129 ] ] ] } },
-                { "type": "Feature", "properties": { "OGR_FID": 22, "Name": "C-22/22", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5456244, -27.6797347 ], [ -48.5451658, -27.6799722 ], [ -48.5449161, -27.6795803 ], [ -48.545356, -27.6793333 ], [ -48.5456244, -27.6797347 ] ] ] } },
-                { "type": "Feature", "properties": { "OGR_FID": 23, "Name”: “C-23/23”, "Forragem": “Brachiaria Setária / Amendoim / Trevo” }, "geometry"]: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5451336, -27.6799865 ], [ -48.5447071, -27.680205 ], [ -48.5444387, -27.679825 ], [ -48.5448625, -27.6795993 ], [ -48.5451336, -27.6799865 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 24, “Name”: “C-24/24”, “Forragem”: “Brachiaria Setária / Amendoim / Trevo” }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5447071, -27.680205 ], [ -48.5442497, -27.6804473 ], [ -48.5439801, -27.6800672 ], [ -48.5444387, -27.679825 ], [ -48.5447071, -27.680205 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 25, “Name”: “C-25/13”, “Forragem”: “Brachiaria Setária / Amendoim / Trevo” }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5460428, -27.6795067 ], [ -48.5462909, -27.6799034 ], [ -48.5458805, -27.6801124 ], [ -48.5456244, -27.6797347 ], [ -48.5460428, -27.6795067 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 26, “Name”: “C-26/14”, “Forragem”: “Azevém / Milheto” }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5458805, -27.6801124 ], [ -48.5454165, -27.6803641 ], [ -48.5451751, -27.6799889 ], [ -48.5456244, -27.6797347 ], [ -48.5458805, -27.6801124 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 27, “Name”: “C-27/15”, “Forragem”: “Brachiaria Setária / Amendoim / Trevo” }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5454165, -27.6803641 ], [ -48.5449578, -27.6805993 ], [ -48.5447071, -27.680205 ], [ -48.5451336, -27.6799865 ], [ -48.5454165, -27.6803641 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 28, “Name”: “C-28/16”, “Forragem”: “Brachiaria Setária / Amendoim / Trevo” }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5449578, -27.6805993 ], [ -48.5445045, -27.6808344 ], [ -48.5442497, -27.6804473 ], [ -48.5447071, -27.680205 ], [ -48.5449578, -27.6805993 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 29, “Name”: “C-29/7”, “Forragem”: “Tangola + Amendoim” }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5463284, -27.679958 ], [ -48.5463928, -27.6804093 ], [ -48.5461809, -27.6805328 ], [ -48.5459046, -27.6801456 ], [ -48.5463284, -27.679958 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 30, “Name”: “C-30/8”, “Forragem”: “Tangola + Amendoim” }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5461809, -27.6805328 ], [ -48.5457142, -27.6807893 ], [ -48.5454433, -27.6803855 ], [ -48.5459046, -27.6801456 ], [ -48.5461809, -27.6805328 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 31, “Name”: “C-31/3”, “Forragem”: “Tangola + Amendoim” }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5464089, -27.6804283 ], [ -48.5465001, -27.6818985 ], [ -48.5463955, -27.6818962 ], [ -48.5457276, -27.6808083 ], [ -48.5464089, -27.6804283 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 32, “Name”: “C-32/1”, “Forragem”: “Tangola + Amendoim” }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5459422, -27.6811741 ], [ -48.546374, -27.6819128 ], [ -48.5458644, -27.6819223 ], [ -48.5455184, -27.6814069 ], [ -48.5459422, -27.6811741 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 33, “Name”: “C-33/2”, “Forragem”: “Tangola + Amendoim” }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5458644, -27.6819223 ], [ -48.5452609, -27.6819104 ], [ -48.5450758, -27.6816349 ], [ -48.5455184, -27.6814069 ], [ -48.5458644, -27.6819223 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 34, “Name”: “86”, “Forragem”: null }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5423713, -27.6831848 ], [ -48.5420682, -27.6837169 ], [ -48.5416713, -27.6835055 ], [ -48.5419985, -27.6830091 ], [ -48.5423713, -27.6831848 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 35, “Name”: “87”, “Forragem”: null }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5416713, -27.6835055 ], [ -48.5412636, -27.6833036 ], [ -48.5416015, -27.6828642 ], [ -48.5419985, -27.6830091 ], [ -48.5416713, -27.6835055 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 36, “Name”: “88”, “Forragem”: null }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5416015, -27.6828642 ], [ -48.5412636, -27.6833036 ], [ -48.54088, -27.6831255 ], [ -48.5411938, -27.6826979 ], [ -48.5416015, -27.6828642 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 37, “Name”: “89”, “Forragem”: null }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5411938, -27.6826979 ], [ -48.54088, -27.6831255 ], [ -48.5404884, -27.6829426 ], [ -48.5407486, -27.6824913 ], [ -48.5411938, -27.6826979 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 38, “Name”: “90”, “Forragem”: null }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5407486, -27.6824913 ], [ -48.5404884, -27.6829426 ], [ -48.5400083, -27.6827027 ], [ -48.5402685, -27.6822965 ], [ -48.5407486, -27.6824913 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 39, “Name”: “91”, “Forragem”: null }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5402685, -27.6822965 ], [ -48.5400083, -27.6827027 ], [ -48.5396677, -27.6825174 ], [ -48.5398152, -27.6821208 ], [ -48.5402685, -27.6822965 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 40, “Name”: “92”, “Forragem”: null }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5404857, -27.6819141 ], [ -48.5402685, -27.6822965 ], [ -48.5398098, -27.6821018 ], [ -48.5400512, -27.6817526 ], [ -48.5404857, -27.6819141 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 41, “Name”: “93”, “Forragem”: null }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5409632, -27.6820542 ], [ -48.5407486, -27.6824913 ], [ -48.5402685, -27.6822965 ], [ -48.5404857, -27.6819141 ], [ -48.5409632, -27.6820542 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 42, “Name”: “94”, “Forragem”: null }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5409632, -27.6820542 ], [ -48.5414647, -27.6822205 ], [ -48.5411938, -27.6826979 ], [ -48.5407486, -27.6824913 ], [ -48.5409632, -27.6820542 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 43, “Name”: “95”, “Forragem”: null }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5414647, -27.6822205 ], [ -48.5419502, -27.6824224 ], [ -48.5416015, -27.6828642 ], [ -48.5411938, -27.6826979 ], [ -48.5414647, -27.6822205 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 44, “Name”: “96”, “Forragem”: null }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5419502, -27.6824224 ], [ -48.5422935, -27.6825388 ], [ -48.5419985, -27.6830091 ], [ -48.5416015, -27.6828642 ], [ -48.5419502, -27.6824224 ] ] ] } },
-                { “type”: “Feature”, “properties”: { “OGR_FID”: 45, “Name”: “97”, “Forragem”: null }, “geometry”: { “type”: “Polygon”, “coordinates”: [ [ [ -48.5422935, -27.6825388 ], [ -48.5426905, -27.6826884 ], [ -48.5423713, -27.6831848 ], [ -48.5419985, -27.6830091 ], [ -48.5422935, -27.6825388 ] ] ] } }
-            ]
-        };
-
-        // 7) Adiciona o GeoJSON ao mapa, aplicando estilo por tratamento / cor experimental
-        L.geoJSON(geojsonData, {
-            style: function(feature) {
-                var name = feature.properties.Name;
-                // Se for piquete experimental, use a cor definida em piqueteInfo[name].color
-                if (piqueteInfo[name]) {
+    var geojsonData = {
+        "type": "FeatureCollection",
+        "name": "mapa",
+        "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+        "features": [
+            { "type": "Feature", "properties": { "OGR_FID": 1, "Name": "C-01/75", "Forragem": "Brachiaria+Setária / Amendoin / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5434389, -27.6769993 ], [ -48.5425833, -27.6774554 ], [ -48.542291, -27.6770611 ], [ -48.5434389, -27.6769993 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 2, "Name": "C-02/67", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5440243, -27.6768314 ], [ -48.5442442, -27.677114 ], [ -48.543858, -27.677323 ], [ -48.5436085, -27.6769929 ], [ -48.5440243, -27.6768314 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 3, "Name": "C-03/68", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5436085, -27.6769929 ], [ -48.543858, -27.677323 ], [ -48.5434135, -27.677576 ], [ -48.5431533, -27.6772055 ], [ -48.5436085, -27.6769929 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 4, "Name": "C-04/69", "Forragem": "Brachiaria+Setária / Amendoin / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5434135, -27.677576 ], [ -48.5429814, -27.6778183 ], [ -48.5427279, -27.6774465 ], [ -48.5431533, -27.6772055 ], [ -48.5434135, -27.677576 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 5, "Name": "C-05/59", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5442442, -27.677114 ], [ -48.5445199, -27.6774883 ], [ -48.5441028, -27.6777294 ], [ -48.543858, -27.677323 ], [ -48.5442442, -27.677114 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 6, "Name": "C-06/60", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5441028, -27.6777294 ], [ -48.5436831, -27.6779681 ], [ -48.5434135, -27.677576 ], [ -48.543858, -27.677323 ], [ -48.5441028, -27.6777294 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 7, "Name": "C-07/61", "Forragem": "Brachiaria+Setária / Amendoin / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5434135, -27.677576 ], [ -48.5436831, -27.6779681 ], [ -48.5432445, -27.6782056 ], [ -48.5429814, -27.6778183 ], [ -48.5434135, -27.677576 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 8, "Name": "C-08/51", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5445447, -27.6775428 ], [ -48.5448424, -27.6779324 ], [ -48.5444065, -27.6781699 ], [ -48.5441222, -27.6777673 ], [ -48.5445447, -27.6775428 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 9, "Name": "C-09/52", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5444065, -27.6781699 ], [ -48.5439854, -27.6784181 ], [ -48.5437145, -27.6779918 ], [ -48.5441222, -27.6777673 ], [ -48.5444065, -27.6781699 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 10, "Name": "C-10/53", "Forragem": "Brachiaria+Setária / Amendoin / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5439854, -27.6784181 ], [ -48.5435576, -27.6786485 ], [ -48.5432706, -27.6782412 ], [ -48.5437145, -27.6779918 ], [ -48.5439854, -27.6784181 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 11, "Name": "C-11/44", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5448424, -27.6779324 ], [ -48.5451267, -27.6783196 ], [ -48.5446761, -27.6785606 ], [ -48.5444065, -27.6781699 ], [ -48.5448424, -27.6779324 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 12, "Name": "C-12/45", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5446761, -27.6785606 ], [ -48.5442483, -27.678797 ], [ -48.5439854, -27.6784181 ], [ -48.5444065, -27.6781699 ], [ -48.5446761, -27.6785606 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 13, "Name": "C-13/46", "Forragem": "Brachiaria+Setária / Amendoin / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5442483, -27.678797 ], [ -48.543807, -27.6790333 ], [ -48.5435576, -27.6786485 ], [ -48.5439854, -27.6784181 ], [ -48.5442483, -27.678797 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 14, "Name": "C-14/37", "Forragem": "Brachiaria+Setária / Amendoin / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5451723, -27.6783564 ], [ -48.5454539, -27.678734 ], [ -48.5450811, -27.6789383 ], [ -48.5448048, -27.6785583 ], [ -48.5451723, -27.6783564 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 15, "Name": "C-15/38", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5450811, -27.6789383 ], [ -48.5446466, -27.6791948 ], [ -48.5443649, -27.6788005 ], [ -48.5448048, -27.6785583 ], [ -48.5450811, -27.6789383 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 16, "Name": "C-16/39", "Forragem": "Brachiaria+Setária / Amendoin / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.544601, -27.6792233 ], [ -48.5441718, -27.6794727 ], [ -48.5438795, -27.6790642 ], [ -48.5443408, -27.6788148 ], [ -48.544601, -27.6792233 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 17, "Name": "C-17/39", "Forragem": "Brachiaria+Setária / Amendoin / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5454539, -27.678734 ], [ -48.5457503, -27.679129 ], [ -48.545356, -27.6793333 ], [ -48.5450811, -27.6789383 ], [ -48.5454539, -27.678734 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 18, "Name": "C-18/30", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.545356, -27.6793333 ], [ -48.5449161, -27.6795803 ], [ -48.5446466, -27.6791948 ], [ -48.5450811, -27.6789383 ], [ -48.545356, -27.6793333 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 19, "Name": "C-19/31", "Forragem": "Brachiaria+Setária / Amendoin / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.544601, -27.6792233 ], [ -48.5448625, -27.6795993 ], [ -48.5444387, -27.679825 ], [ -48.5441718, -27.6794727 ], [ -48.544601, -27.6792233 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 20, "Name": "C-20/31", "Forragem": "Brachiaria+Setária / Amendoin / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5444387, -27.679825 ], [ -48.5439801, -27.6800672 ], [ -48.5437547, -27.6797395 ], [ -48.5441718, -27.6794727 ], [ -48.5444387, -27.679825 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 21, "Name": "C-21/21", "Forragem": "Brachiaria+Setária / Amendoin / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5457503, -27.679129 ], [ -48.5460428, -27.6795067 ], [ -48.5456244, -27.6797347 ], [ -48.545356, -27.6793333 ], [ -48.5457503, -27.679129 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 22, "Name": "C-22/22", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5456244, -27.6797347 ], [ -48.5451658, -27.6799722 ], [ -48.5449161, -27.6795803 ], [ -48.545356, -27.6793333 ], [ -48.5456244, -27.6797347 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 23, "Name": "C-23/23", "Forragem": "Brachiaria+Setária / Amendoin / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5451336, -27.6799865 ], [ -48.5447071, -27.680205 ], [ -48.5444387, -27.679825 ], [ -48.5448625, -27.6795993 ], [ -48.5451336, -27.6799865 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 24, "Name": "C-24/24", "Forragem": "Brachiaria+Setária / Amendoin / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5447071, -27.680205 ], [ -48.5442497, -27.6804473 ], [ -48.5439801, -27.6800672 ], [ -48.5444387, -27.679825 ], [ -48.5447071, -27.680205 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 25, "Name": "C-25/13", "Forragem": "Brachiaria+Setária / Amendoin / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5460428, -27.6795067 ], [ -48.5462909, -27.6799034 ], [ -48.5458805, -27.6801124 ], [ -48.5456244, -27.6797347 ], [ -48.5460428, -27.6795067 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 26, "Name": "C-26/14", "Forragem": "Azevém / Milheto" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5458805, -27.6801124 ], [ -48.5454165, -27.6803641 ], [ -48.5451751, -27.6799889 ], [ -48.5456244, -27.6797347 ], [ -48.5458805, -27.6801124 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 27, "Name": "C-27/15", "Forragem": "Brachiaria+Setária / Amendoin / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5454165, -27.6803641 ], [ -48.5449578, -27.6805993 ], [ -48.5447071, -27.680205 ], [ -48.5451336, -27.6799865 ], [ -48.5454165, -27.6803641 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 28, "Name": "C-28/16", "Forragem": "Brachiaria+Setária / Amendoin / Trevo" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5449578, -27.6805993 ], [ -48.5445045, -27.6808344 ], [ -48.5442497, -27.6804473 ], [ -48.5447071, -27.680205 ], [ -48.5449578, -27.6805993 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 29, "Name": "C-29/7", "Forragem": "Tangola + Amendoim" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5463284, -27.679958 ], [ -48.5463928, -27.6804093 ], [ -48.5461809, -27.6805328 ], [ -48.5459046, -27.6801456 ], [ -48.5463284, -27.679958 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 30, "Name": "C-30/8", "Forragem": "Tangola + Amendoim" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5461809, -27.6805328 ], [ -48.5457142, -27.6807893 ], [ -48.5454433, -27.6803855 ], [ -48.5459046, -27.6801456 ], [ -48.5461809, -27.6805328 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 31, "Name": "C-31/3", "Forragem": "Tangola + Amendoim" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5464089, -27.6804283 ], [ -48.5465001, -27.6818985 ], [ -48.5463955, -27.6818962 ], [ -48.5457276, -27.6808083 ], [ -48.5464089, -27.6804283 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 32, "Name": "C-32/1", "Forragem": "Tangola + Amendoim" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5459422, -27.6811741 ], [ -48.546374, -27.6819128 ], [ -48.5458644, -27.6819223 ], [ -48.5455184, -27.6814069 ], [ -48.5459422, -27.6811741 ] ] ] } },
+            { "type": "Feature", "properties": { "OGR_FID": 33, "Name": "C-33/2", "Forragem": "Tangola + Amendoim" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5458644, -27.6819223 ], [ -48.5452609, -27.6819104 ], [ -48.5450758, -27.6816349 ], [ -48.5455184, -27.6814069 ], [ -48.5458644, -27.6819223 ] ] ] } },
+             { "type": "Feature", "properties": { "OGR_FID": 34, "Name": "86", "Forragem": null }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5423713, -27.6831848 ], [ -48.5420682, -27.6837169 ], [ -48.5416713, -27.6835055 ], [ -48.5419985, -27.6830091 ], [ -48.5423713, -27.6831848 ] ] ] } },
+        { "type": "Feature", "properties": { "OGR_FID": 35, "Name": "87", "Forragem": null }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5416713, -27.6835055 ], [ -48.5412636, -27.6833036 ], [ -48.5416015, -27.6828642 ], [ -48.5419985, -27.6830091 ], [ -48.5416713, -27.6835055 ] ] ] } },
+        { "type": "Feature", "properties": { "OGR_FID": 36, "Name": "88", "Forragem": null }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5416015, -27.6828642 ], [ -48.5412636, -27.6833036 ], [ -48.54088, -27.6831255 ], [ -48.5411938, -27.6826979 ], [ -48.5416015, -27.6828642 ] ] ] } },
+        { "type": "Feature", "properties": { "OGR_FID": 37, "Name": "89", "Forragem": null }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5411938, -27.6826979 ], [ -48.54088, -27.6831255 ], [ -48.5404884, -27.6829426 ], [ -48.5407486, -27.6824913 ], [ -48.5411938, -27.6826979 ] ] ] } },
+        { "type": "Feature", "properties": { "OGR_FID": 38, "Name": "90", "Forragem": null }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5407486, -27.6824913 ], [ -48.5404884, -27.6829426 ], [ -48.5400083, -27.6827027 ], [ -48.5402685, -27.6822965 ], [ -48.5407486, -27.6824913 ] ] ] } },
+        { "type": "Feature", "properties": { "OGR_FID": 39, "Name": "91", "Forragem": null }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5402685, -27.6822965 ], [ -48.5400083, -27.6827027 ], [ -48.5396677, -27.6825174 ], [ -48.5398152, -27.6821208 ], [ -48.5402685, -27.6822965 ] ] ] } },
+         { "type": "Feature", "properties": { "OGR_FID": 40, "Name": "92", "Forragem": null }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5404857, -27.6819141 ], [ -48.5402685, -27.6822965 ], [ -48.5398098, -27.6821018 ], [ -48.5400512, -27.6817526 ], [ -48.5404857, -27.6819141 ] ] ] } },
+        { "type": "Feature", "properties": { "OGR_FID": 41, "Name": "93", "Forragem": null }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5409632, -27.6820542 ], [ -48.5407486, -27.6824913 ], [ -48.5402685, -27.6822965 ], [ -48.5404857, -27.6819141 ], [ -48.5409632, -27.6820542 ] ] ] } },
+        { "type": "Feature", "properties": { "OGR_FID": 42, "Name": "94", "Forragem": null }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5409632, -27.6820542 ], [ -48.5414647, -27.6822205 ], [ -48.5411938, -27.6826979 ], [ -48.5407486, -27.6824913 ], [ -48.5409632, -27.6820542 ] ] ] } },
+        { "type": "Feature", "properties": { "OGR_FID": 43, "Name": "95", "Forragem": null }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5414647, -27.6822205 ], [ -48.5419502, -27.6824224 ], [ -48.5416015, -27.6828642 ], [ -48.5411938, -27.6826979 ], [ -48.5414647, -27.6822205 ] ] ] } },
+        { "type": "Feature", "properties": { "OGR_FID": 44, "Name": "96", "Forragem": null }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5419502, -27.6824224 ], [ -48.5422935, -27.6825388 ], [ -48.5419985, -27.6830091 ], [ -48.5416015, -27.6828642 ], [ -48.5419502, -27.6824224 ] ] ] } },
+        { "type": "Feature", "properties": { "OGR_FID": 45, "Name": "97", "Forragem": null }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -48.5422935, -27.6825388 ], [ -48.5426905, -27.6826884 ], [ -48.5423713, -27.6831848 ], [ -48.5419985, -27.6830091 ], [ -48.5422935, -27.6825388 ] ] ] } }
+        ]
+    };
+  L.geoJSON(geojsonData, {
+                style: function (feature) {
                     return {
-                        fillColor: piqueteInfo[name].color,
+                        fillColor: piqueteColors[feature.properties.Name],
                         color: "#000",
                         weight: 1,
                         opacity: 1,
                         fillOpacity: 0.8
                     };
-                }
-                // Caso contrário, mantém a cor original
-                return {
-                    fillColor: piqueteColors[name] || "#CCCCCC",
-                    color: "#000",
-                    weight: 1,
-                    opacity: 1,
-                    fillOpacity: 0.5
-                };
-            },
-            onEachFeature: function(feature, layer) {
-                var name = feature.properties.Name;
-                // Rótulo fixo com o nome do piquete
-                layer.bindTooltip(name, {
-                    permanent: true,
-                    direction: 'center',
-                    className: 'piquete-label'
-                });
+                },
+                onEachFeature: function (feature, layer) {
+                    // Adiciona o ID do piquete como um rótulo fixo
+                    layer.bindTooltip(feature.properties.Name, {
+                        permanent: true,
+                        direction: 'center',
+                        className: 'piquete-label'
+                    }).addTo(map);
 
-                // Popup: se for experimental, exibe Tratamento, Bloco e Repetição.
-                if (piqueteInfo[name]) {
-                    var info = piqueteInfo[name];
-                    var popupHtml = 
-                        "<b>Piquete:</b> " + name + "<br>" +
-                        "<b>Tratamento:</b> " + info.t + "<br>" +
-                        "<b>Bloco:</b> " + info.bloco + "<br>" +
-                        "<b>Repetição:</b> " + info.rep;
-                    layer.bindPopup(popupHtml);
+                    // Define o conteúdo do popup apenas com a forragem, se existir
+                    if (feature.properties.Forragem) {
+                        layer.bindPopup("<b>Forragem:</b> " + feature.properties.Forragem);
+                    }
                 }
-                else if (feature.properties.Forragem) {
-                    // Para piquetes não experimentais, exibe apenas a forragem (como antes)
-                    layer.bindPopup("<b>Forragem:</b> " + feature.properties.Forragem);
-                }
-            }
-        }).addTo(map);
+            }).addTo(map);
 
-    </script>
-</body>
-</html>
+        </script>
+
+        </body>
+        </html>
